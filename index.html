@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentation: IMAGINE: Unity and Justice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chosen Palette: Slate Neutrals, Indigo for CTA, Themed Borders (Blue/Red/Green) -->
+    <!-- Application Structure Plan: A single-page, linear interactive presentation. Users navigate with 'Next'/'Previous' buttons. A progress bar shows their position. The content is divided into three thematic sections (Part 1: Lennon/Emmanuel - Blue; Part 2: MLK/Carlos - Red; Part 3: Synthesis/Luca - Green), visually distinguished by subtle background color changes and border accents. This structure turns the static script into a guided, self-paced, and engaging experience. -->
+    <!-- Visualization & Content Choices: Report Info: Presentation script on Lennon/MLK Jr. -> Goal: Inform and guide the user through the narrative, adding visual context. -> Viz/Presentation Method: Structured HTML with enhanced Tailwind CSS for clean typography and layout, including a prominent image container. -> Interaction: 'Next'/'Previous' navigation buttons. Sequential reveal of bullet points on click to mimic presentation flow. -> Justification: Textual content is best enhanced by clear narrative structure and relevant imagery (placeholders), while maintaining high readability. -> Library/Method: Vanilla JavaScript for all dynamic logic. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f1f5f9;
+        transition: background-color 0.5s ease;
+      }
+      .slide-content {
+        transition: opacity 0.5s ease-in-out, border-color 0.5s ease-in-out,
+          box-shadow 0.5s ease;
+      }
+      .bullet-point {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        transition-delay: var(--delay);
+      }
+      .bullet-point.visible {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .nav-btn {
+        transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+      }
+      .nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .nav-btn:hover:not(:disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      #progressBar {
+        transition: width 0.3s ease-in-out;
+      }
+      .presenter-script-box {
+        background-color: #f8fafc;
+        border-left-width: 4px;
+      }
+      #slideImage {
+        transition: opacity 0.5s ease-in-out;
+      }
+    </style>
+  </head>
+  <body
+    class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8"
+  >
+    <div class="w-full max-w-4xl mx-auto">
+      <header class="text-center mb-4">
+        <h1
+          id="main-title"
+          class="text-3xl sm:text-4xl font-extrabold text-slate-800"
+        ></h1>
+        <h2
+          id="main-subtitle"
+          class="text-lg sm:text-xl text-slate-500 mt-1"
+        ></h2>
+      </header>
+
+      <div class="w-full bg-slate-200 rounded-full h-2 mb-6 shadow-inner">
+        <div
+          id="progressBar"
+          class="bg-indigo-600 h-2 rounded-full"
+          style="width: 0%"
+        ></div>
+      </div>
+
+      <main
+        id="slideContainer"
+        class="w-full bg-white rounded-xl shadow-2xl p-6 sm:p-10 min-h-[60vh] flex flex-col justify-between slide-content border-t-8 border-transparent"
+      >
+        <div>
+          <img
+            id="slideImage"
+            class="w-full h-auto max-h-56 object-cover rounded-lg mb-6 shadow-md"
+            alt="Slide Visual"
+            style="opacity: 0"
+          />
+          <h3
+            id="slide-title"
+            class="text-xl sm:text-3xl font-bold text-slate-900 mb-6 text-center"
+          ></h3>
+          <div
+            id="slide-bullets"
+            class="space-y-4 text-slate-700 text-base sm:text-lg"
+          ></div>
+        </div>
+        <div
+          id="slide-script"
+          class="mt-8 pt-6 border-t border-slate-300 rounded-lg presenter-script-box p-4"
+        >
+          <p class="text-sm">
+            <strong class="font-bold text-slate-800" id="script-label"></strong>
+            <span id="script-text" class="text-slate-600 italic"></span>
+          </p>
+        </div>
+      </main>
+
+      <footer class="flex items-center justify-between mt-6">
+        <span id="slideCounter" class="text-sm font-medium text-slate-500"
+          >Slide 1 / 10</span
+        >
+        <div class="flex items-center space-x-4">
+          <button
+            id="prevBtn"
+            class="nav-btn bg-white text-slate-700 px-5 py-2 rounded-full shadow-lg font-semibold hover:bg-slate-100 disabled:bg-slate-200"
+          >
+            Previous
+          </button>
+          <button
+            id="nextBtn"
+            class="nav-btn bg-indigo-600 text-white px-5 py-2 rounded-full shadow-lg font-bold hover:bg-indigo-700"
+          >
+            Next
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const slidesData = [
+        {
+          part: 1,
+          themeColor: "border-blue-500",
+          bgColor: "#eff6ff", // bg-blue-50
+          title: "IMAGINE: A Call for Unity and Global Justice",
+          subtitle: "The Lyricism of John Lennon and the Legacy of MLK Jr.",
+          bullets: [],
+          script:
+            "Good morning, everyone. Our presentation examines the universal pursuit of peace, comparing a musical, utopian vision with a real-world struggle for justice. The core theme is the power of **imagination** and **nonviolence** to overcome division.",
+          image:
+            "https://placehold.co/800x400/000/FFFFFF?text=IMAGINE+%26+JUSTICE",
+        },
+        {
+          part: 1,
+          themeColor: "border-blue-500",
+          bgColor: "#eff6ff",
+          title: "John Lennon’s *Imagine*: Utopian Lyrics",
+          bullets: [
+            "<strong>Key Verses (Part 1):</strong>",
+            "<em>Imagine there's no heaven...</em>",
+            "<em>No hell below us...</em>",
+            "<em>Above us only sky...</em>",
+          ],
+          script:
+            "Imagine is more than a song; it's a deep philosophical invitation. By challenging traditional religious structures, Lennon encourages us to focus our energy and compassion entirely on the present—on **living for today**, together, under one sky.",
+          image:
+            "https://placehold.co/800x400/3B82F6/FFFFFF?text=LENNON%27S+VISION",
+        },
+        {
+          part: 1,
+          themeColor: "border-blue-500",
+          bgColor: "#eff6ff",
+          title: "Eliminating Divisive Barriers",
+          bullets: [
+            "<strong>Key Verses (Part 2):</strong>",
+            "<em>Imagine there's no countries...</em>",
+            "<em>Nothing to kill or die for...</em>",
+            "<em>And no religion too...</em>",
+          ],
+          script:
+            "Lennon then addresses the primary causes of global conflict: nationalism and ideology. He argues that borders and dogmas are artificial constructs that lead to war. By eliminating these divisions, there would be **nothing to kill or die for**, and we could all live in **peace**.",
+          image:
+            "https://placehold.co/800x400/60A5FA/FFFFFF?text=NO+BORDERS+NO+HATE",
+        },
+        {
+          part: 1,
+          themeColor: "border-blue-500",
+          bgColor: "#eff6ff",
+          title: "The End of Greed and Hunger",
+          bullets: [
+            "<strong>Key Verses (Part 3):</strong>",
+            "<em>Imagine no possessions...</em>",
+            "<em>No need for greed or hunger...</em>",
+            "<em>A brotherhood of man...</em>",
+          ],
+          script:
+            "The most radical idea is the rejection of materialism. Lennon posits that by removing ownership and the pursuit of material wealth, we eliminate the root of **greed and hunger**, achieving true **equality** and a **brotherhood of man**. It's a collective call to action: 'I hope someday you'll join us, and the world will be one.'",
+          image:
+            "https://placehold.co/800x400/93C5FD/000000?text=A+BROTHERHOOD+OF+MAN",
+        },
+        {
+          part: 2,
+          themeColor: "border-red-500",
+          bgColor: "#fee2e2", // bg-red-50
+          title: "Martin Luther King Jr.: The Champion of Nonviolence",
+          bullets: [
+            "<strong>Inspiration:</strong> Christian faith and Gandhi's *Satyagraha* (soul force).",
+            "<strong>Objective:</strong> Legal equality and a fundamental moral change in American society.",
+          ],
+          script:
+            "Moving from the lyrical dream to the real-world struggle, we discuss Dr. Martin Luther King Jr., the most significant leader of the U.S. Civil Rights Movement. King adopted nonviolence as his primary weapon. His fight was not just for laws, but for the nation's morality. **Nonviolent direct action** was his method to expose and correct injustice.",
+          image:
+            "https://placehold.co/800x400/EF4444/FFFFFF?text=MLK+NONVIOLENCE+CHAMPION",
+        },
+        {
+          part: 2,
+          themeColor: "border-red-500",
+          bgColor: "#fee2e2",
+          title: "Key Civil Rights Campaigns",
+          bullets: [
+            "<strong>1. Montgomery Bus Boycott (1955):</strong> Ended public transport segregation after 381 days of protest.",
+            "<strong>2. Birmingham Campaign (1963):</strong> Exposed police brutality to the world, winning public support.",
+          ],
+          script:
+            "King’s leadership defined several crucial moments. The **Montgomery Bus Boycott** demonstrated the power of civil disobedience to achieve legal change. The **Birmingham Campaign** exposed the injustice of segregation, generating national support for the cause.",
+          image:
+            "https://placehold.co/800x400/F87171/FFFFFF?text=CIVIL+RIGHTS+CAMPAIGNS",
+        },
+        {
+          part: 2,
+          themeColor: "border-red-500",
+          bgColor: "#fee2e2",
+          title: "The Power of the Dream",
+          bullets: [
+            "<strong>The March on Washington (1963):</strong> Delivered the famous *'I Have a Dream'* speech. ",
+            "<strong>Core Vision:</strong> People judged 'not by the color of their skin but by the content of their character.'",
+            "<strong>Legacy:</strong> Led to the Civil Rights Act (1964) and the Nobel Peace Prize (1964).",
+          ],
+          script:
+            "This leads us to his most famous moment: the March on Washington, where he delivered his iconic 'I Have a Dream' speech. The message was a call for the U.S. to fulfill its promise of freedom. His dream centered on a future where his children would be judged **'by the content of their character'** and not by race. King's commitment to nonviolence directly resulted in the Civil Rights Act and earned him the Nobel Peace Prize.",
+          image:
+            "https://placehold.co/800x400/FCA5A5/000000?text=I+HAVE+A+DREAM",
+        },
+        {
+          part: 3,
+          themeColor: "border-green-500",
+          bgColor: "#ecfdf5", // bg-green-50
+          title: "Synthesis: The Vision and the Method",
+          bullets: [
+            "<strong>Lennon's *Imagine*</strong> offers the <strong>Utopian Blueprint</strong> (What the world *could* be).",
+            "<strong>King's Leadership</strong> offers the <strong>Moral Framework</strong> (How to *get there* nonviolently).",
+          ],
+          script:
+            "To conclude, let's connect these two figures. Though working in different fields, Lennon and King shared a goal: a world free of division. Lennon gives us the **utopian blueprint** (the vision of what the world could be). King gives us the **moral framework** (the nonviolent path of action) to transform that discord into a symphony of brotherhood.",
+          image:
+            "https://placehold.co/800x400/10B981/FFFFFF?text=VISION+%2B+METHOD",
+        },
+        {
+          part: 3,
+          themeColor: "border-green-500",
+          bgColor: "#ecfdf5",
+          title: "Beyond Dreaming: A Call to Action",
+          bullets: [
+            "<strong>Shared Lesson:</strong> The biggest obstacles are internal: greed, hatred, and fear.",
+            "<strong>King's Faith:</strong> *“The arc of the moral universe is long, but it bends toward justice.”*",
+            "<strong>Lennon's Invitation:</strong> *“I hope someday you'll join us, and the world will be one.”*",
+          ],
+          script:
+            "Both leaders understood that peace requires a shift in our collective consciousness. Nonviolence is the tool to force that change. King's legacy teaches us that the struggle, though long, is winnable through persistent, nonviolent action. Lennon's invitation is the same call to action. We must first **imagine** the world we want, and then, like Dr. King, commit to the action required to build it.",
+          image:
+            "https://placehold.co/800x400/34D399/FFFFFF?text=THE+CALL+TO+ACTION",
+        },
+        {
+          part: 3,
+          themeColor: "border-green-500",
+          bgColor: "#ecfdf5",
+          title: "Thank You",
+          bullets: [],
+          script:
+            "Thank you for your attention. We are now ready to answer any questions you may have about John Lennon's vision or Dr. Martin Luther King Jr.'s powerful legacy of nonviolence.",
+          image: "https://placehold.co/800x400/6EE7B7/000000?text=Q+%26+A",
+        },
+      ];
+
+      let currentSlideIndex = 0;
+
+      const mainTitleEl = document.getElementById("main-title");
+      const mainSubtitleEl = document.getElementById("main-subtitle");
+      const slideTitleEl = document.getElementById("slide-title");
+      const slideBulletsEl = document.getElementById("slide-bullets");
+      const scriptTextEl = document.getElementById("script-text");
+      const scriptLabelEl = document.getElementById("script-label");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const slideCounterEl = document.getElementById("slideCounter");
+      const progressBarEl = document.getElementById("progressBar");
+      const slideContainer = document.getElementById("slideContainer");
+      const slideImageEl = document.getElementById("slideImage");
+
+      let currentThemeColor = "";
+      let currentBgColor = "";
+
+      function getPresenterName(part) {
+        if (part === 1) return "Emmanuel";
+        if (part === 2) return "Carlos";
+        if (part === 3) return "Luca";
+        return "Team";
+      }
+
+      function renderSlide() {
+        const slide = slidesData[currentSlideIndex];
+        const isTitleSlide = currentSlideIndex === 0;
+
+        // Start fade out on container and image
+        slideContainer.style.opacity = 0;
+        slideImageEl.style.opacity = 0;
+
+        setTimeout(() => {
+          // Update header for title slide
+          if (isTitleSlide) {
+            mainTitleEl.textContent = slide.title;
+            mainSubtitleEl.textContent = slide.subtitle;
+          }
+
+          // Update slide content
+          slideTitleEl.textContent = isTitleSlide ? "Welcome" : slide.title;
+          slideBulletsEl.innerHTML = "";
+
+          if (slide.bullets.length > 0) {
+            slide.bullets.forEach((bullet, index) => {
+              const p = document.createElement("p");
+              p.innerHTML = bullet;
+              p.className = "bullet-point";
+              p.style.setProperty("--delay", `${index * 0.15}s`);
+              slideBulletsEl.appendChild(p);
+            });
+          } else {
+            slideBulletsEl.innerHTML = `<div class="text-center text-slate-400 p-8 text-xl font-medium">${
+              isTitleSlide
+                ? 'Click "Next" to begin the presentation.'
+                : "End of Section / Q&A."
+            }</div>`;
+          }
+
+          // Update script and presenter name
+          const presenterName = getPresenterName(slide.part);
+          scriptLabelEl.textContent = `${presenterName}'s Script: `;
+          scriptTextEl.textContent = slide.script;
+
+          // Update image
+          slideImageEl.src = slide.image;
+          slideImageEl.alt = slide.title;
+
+          // Update theme color (Border)
+          if (slide.themeColor !== currentThemeColor) {
+            if (currentThemeColor) {
+              slideContainer.classList.remove(currentThemeColor);
+            }
+            slideContainer.classList.add(slide.themeColor);
+            currentThemeColor = slide.themeColor;
+          }
+
+          // Update background color (Body)
+          if (slide.bgColor && slide.bgColor !== currentBgColor) {
+            document.body.style.backgroundColor = slide.bgColor;
+            currentBgColor = slide.bgColor;
+          }
+
+          // Update controls
+          prevBtn.disabled = currentSlideIndex === 0;
+          nextBtn.disabled = currentSlideIndex === slidesData.length - 1;
+          slideCounterEl.textContent = `Slide ${currentSlideIndex + 1} / ${
+            slidesData.length
+          }`;
+          progressBarEl.style.width = `${
+            ((currentSlideIndex + 1) / slidesData.length) * 100
+          }%`;
+
+          // Fade in container and image
+          slideContainer.style.opacity = 1;
+          slideImageEl.style.opacity = 1;
+
+          // Animate bullet points
+          setTimeout(() => {
+            const bullets = slideBulletsEl.querySelectorAll(".bullet-point");
+            bullets.forEach((bullet) => bullet.classList.add("visible"));
+          }, 100);
+        }, 250);
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (currentSlideIndex > 0) {
+          currentSlideIndex--;
+          renderSlide();
+        }
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (currentSlideIndex < slidesData.length - 1) {
+          currentSlideIndex++;
+          renderSlide();
+        }
+      });
+
+      // Initial render
+      renderSlide();
+    </script>
+  </body>
+</html>
