@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Presentation: Nelson Mandela</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS adjusted to allow scrolling if content overflows the screen */
+        html, body {
+            min-height: 100vh; /* Ensures it takes at least the viewport height */
+            overflow-y: auto; /* Allows vertical scroll if necessary */
+            height: auto; /* Allows it to grow */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate-50 */
+            transition: background-color 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0; /* Add vertical padding for content visibility */
+        }
+
+        .main-container {
+            width: 95%;
+            min-height: 95vh; /* Ensures minimum size, but allows growth */
+            max-width: 1400px;
+            display: grid;
+            grid-template-rows: auto 1fr auto; /* Header | Main Content | Footer */
+            padding: 1.5rem;
+            background-color: white; /* Container is always white */
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                min-height: 100vh;
+                padding: 1rem;
+            }
+        }
+
+        .slide-content {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .bullet-point {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            transition-delay: var(--delay);
+        }
+        .bullet-point.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .nav-btn {
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .script-quote-box {
+            background-color: #f1f5f9; /* Slate-100 */
+            border-left-width: 4px;
+        }
+        #slideImage {
+            transition: opacity 0.5s ease-in-out;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* Minimalist Progress Bar */
+        #progressBar {
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container bg-white rounded-2xl shadow-2xl">
+        <!-- 1. HEADER (Title and Progress Bar) -->
+        <header class="mb-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between pb-3 border-b border-slate-200">
+                <h1 id="main-title" class="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-2 sm:mb-0">
+                    The Legacy of Nelson Mandela
+                </h1>
+                <div class="w-full sm:w-1/3 bg-slate-200 rounded-full h-2 shadow-inner mt-2 sm:mt-0">
+                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. MAIN CONTENT AREA (GRID for Image/Text Split) -->
+        <main id="slideContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 slide-content mb-4 overflow-hidden rounded-xl">
+            
+            <!-- LEFT COLUMN: Image -->
+            <div class="lg:col-span-1 bg-slate-100 rounded-xl overflow-hidden shadow-lg h-full hidden lg:block">
+                <img id="slideImage" class="w-full" alt="Slide Visual" style="opacity: 0;">
+            </div>
+
+            <!-- RIGHT COLUMN: Title, Bullets, Quote -->
+            <div class="lg:col-span-2 flex flex-col justify-between p-4 sm:p-6 h-full border-l-4 border-blue-600 border-opacity-70" id="text-content-box">
+                <div>
+                    <h3 id="slide-title" class="text-3xl sm:text-5xl font-light text-slate-800 mb-8"></h3>
+                    <div id="slide-bullets" class="space-y-5 text-slate-700 text-lg sm:text-xl">
+                    </div>
+                </div>
+                 <div id="slide-script" class="mt-12 pt-4 border-t border-slate-300 rounded-lg script-quote-box p-4">
+                    <p class="text-base sm:text-xl font-medium text-slate-800 italic" id="script-text"></p>
+                    <p class="text-right text-sm font-semibold text-blue-600 mt-2">— Source Quote</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- 3. FOOTER & CONTROLS -->
+        <footer class="flex items-center justify-between mt-4">
+            <span id="slideCounter" class="text-base font-medium text-slate-500">Slide 1 / 4</span>
+            <div class="flex items-center space-x-4">
+                <button id="prevBtn" class="nav-btn bg-white text-slate-700 px-6 py-2 rounded-full shadow-lg font-semibold border border-slate-300 hover:bg-slate-100 disabled:bg-slate-200">Previous</button>
+                <button id="nextBtn" class="nav-btn bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg font-bold hover:bg-blue-700 disabled:opacity-50">Next</button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const slidesData = [
+            {
+                index: 0,
+                title: "1. The Vision: Unity and Dignity",
+                bullets: [
+                    "<strong>The Dream:</strong> A non-racial, democratic South Africa, free from Apartheid.",
+                    "<strong>Moral Foundation:</strong> Belief in intrinsic equality and the dignity of every human being.",
+                    "<strong>Goal:</strong> Creating a 'Rainbow Nation' where diversity is the greatest strength."
+                ],
+                script: "It always seems impossible until it's done.",
+                source: "Nelson Mandela",
+                image: 'https://placehold.co/800x600/1e3a8a/FFFFFF?text=NELSON+MANDELA%0A(VISION)'
+            },
+            {
+                index: 1,
+                title: '2. The Method: Resilience and Action',
+                bullets: [
+                    "<strong>Decades of Struggle:</strong> From grassroots activism to global political leadership.",
+                    "<strong>The Sacrifice:</strong> 27 years of imprisonment, confirming an unwavering commitment to the cause.",
+                    "<strong>Approach:</strong> Transitioning from early direct action to a sustained non-violent dialogue."
+                ],
+                script: "I learned that courage was not the absence of fear, but the triumph over it.",
+                source: "Nelson Mandela",
+                image: 'https://placehold.co/800x600/3b82f6/FFFFFF?text=ROBBEN+ISLAND%0A(RESILIENCE)'
+            },
+            {
+                index: 2,
+                title: '3. The Inspiration: A World United',
+                bullets: [
+                    "<strong>Universal Hope:</strong> The power of imagining a world without divisions or need (The Song).",
+                    "<strong>Shared Humanity:</strong> Focusing on common ground above possessions, borders, or dogma.",
+                    "<strong>The Call:</strong> Collective action begins with the shared belief in possibility and peace."
+                ],
+                script: "You may say I'm a dreamer, but I'm not the only one. I hope someday you'll join us.",
+                source: "John Lennon",
+                image: 'https://placehold.co/800x600/10b981/FFFFFF?text=IMAGINE%0A(UNITY)'
+            },
+            {
+                index: 3,
+                title: '4. The Synthesis: Global Reconciliation',
+                bullets: [
+                    "<strong>The African Miracle:</strong> Peaceful democratic transition without a civil war.",
+                    "<strong>Healing:</strong> The deliberate use of the Truth and Reconciliation Commission for national healing.",
+                    "<strong>Global Impact:</strong> A timeless model for conflict resolution, forgiveness, and transformative leadership."
+                ],
+                script: "To be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.",
+                source: "Nelson Mandela",
+                image: 'https://placehold.co/800x600/60a5fa/000000?text=LEGACY%0A(RECONCILIATION)'
+            }
+        ];
+
+        let currentSlideIndex = 0;
+
+        const slideTitleEl = document.getElementById('slide-title');
+        const slideBulletsEl = document.getElementById('slide-bullets');
+        const scriptTextEl = document.getElementById('script-text');
+        const quoteSourceEl = document.querySelector('#slide-script > p:last-child'); // Selects the source element
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounterEl = document.getElementById('slideCounter');
+        const progressBarEl = document.getElementById('progressBar');
+        const slideImageEl = document.getElementById('slideImage');
+        const textContentBox = document.getElementById('text-content-box'); 
+        
+        function renderSlide() {
+            const slide = slidesData[currentSlideIndex];
+
+            // 1. Start fade out effect
+            textContentBox.style.opacity = 0;
+            slideImageEl.style.opacity = 0;
+
+            setTimeout(() => {
+                
+                // 2. Update content
+                slideTitleEl.textContent = slide.title;
+                slideBulletsEl.innerHTML = '';
+                
+                slide.bullets.forEach((bullet, index) => {
+                    const p = document.createElement('p');
+                    p.innerHTML = `&bull; ${bullet}`; // Use simple bullet
+                    p.className = 'bullet-point text-slate-700';
+                    p.style.setProperty('--delay', `${index * 0.15}s`);
+                    slideBulletsEl.appendChild(p);
+                });
+                
+                // Update Quote and Source
+                scriptTextEl.textContent = slide.script;
+                quoteSourceEl.textContent = `— ${slide.source}`;
+
+                // Update image
+                slideImageEl.src = slide.image;
+                slideImageEl.alt = `${slide.title} Visual`;
+
+                // 3. Update controls and progress bar
+                prevBtn.disabled = currentSlideIndex === 0;
+                nextBtn.disabled = currentSlideIndex === slidesData.length - 1;
+                slideCounterEl.textContent = `Slide ${currentSlideIndex + 1} / ${slidesData.length}`;
+                progressBarEl.style.width = `${((currentSlideIndex + 1) / slidesData.length) * 100}%`;
+                
+                // 4. End fade out effect and animate bullets
+                textContentBox.style.opacity = 1;
+                slideImageEl.style.opacity = 1;
+
+                setTimeout(() => {
+                    const bullets = slideBulletsEl.querySelectorAll('.bullet-point');
+                    bullets.forEach(bullet => bullet.classList.add('visible'));
+                }, 100);
+
+            }, 250);
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlideIndex < slidesData.length - 1) {
+                currentSlideIndex++;
+                renderSlide();
+            }
+        });
+
+        // Initial Render
+        renderSlide();
+    </script>
+</body>
+</html>
